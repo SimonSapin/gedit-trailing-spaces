@@ -1,0 +1,9 @@
+[Plugin]
+Loader=python
+Module=trailingspaces
+IAge=3
+Name=Trailing Spaces
+Description=Makes trailing spaces very visible
+Authors=Gustavo Noronha Silva <gns@gnome.org>
+Copyright=Copyright © 2012 Gustavo Noronha Silva
+Website=https://gitorious.org/gedit-trailing-spaces
