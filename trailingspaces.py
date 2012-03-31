@@ -33,8 +33,9 @@ class TrailingSpaces(GObject.Object, Gedit.ViewActivatable):
 
         self.cursor_line = self._get_cursor_line()
 
-        self.tag = self.buffer.create_tag('trailing_spaces')
-        self.tag.set_property('background', 'red')
+        if not self.buffer.get_tag_table().lookup('tailing_spaces'):
+            self.tag = self.buffer.create_tag('trailing_spaces')
+            self.tag.set_property('background', 'red')
 
         self.buffer.connect('loaded', self._check_buffer_cb)
         self.buffer.connect_after('insert-text', self._text_inserted_cb)
