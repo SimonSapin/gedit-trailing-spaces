@@ -31,11 +31,14 @@ class TrailingSpaces(GObject.Object, Gedit.ViewActivatable):
     def do_activate(self):
         self.buffer = self.view.get_buffer()
 
+        self.cursor_line = self._get_cursor_line()
+
         self.tag = self.buffer.create_tag('trailing_spaces')
         self.tag.set_property('background', 'red')
 
         self.buffer.connect('loaded', self._check_buffer_cb)
         self.buffer.connect_after('insert-text', self._text_inserted_cb)
+        self.buffer.connect('notify::cursor-position', self._cursor_moved_cb)
 
 
     def _check_buffer_cb(self, *args):
@@ -47,11 +50,31 @@ class TrailingSpaces(GObject.Object, Gedit.ViewActivatable):
             self.untrail_previous(location)
             return
 
-        line = location.copy()
 
-        # Go to the start of the line.
-        line.set_line(location.get_line())
-        self.check_line(line)
+    def _get_cursor_line(self):
+        cursor_offset = self.buffer.get_property('cursor-position')
+        return self.buffer.get_iter_at_offset(cursor_offset).get_line()
+
+
+    def _cursor_moved_cb(self, *args):
+        current_line = self._get_cursor_line()
+        if self.cursor_line == current_line:
+            return
+
+        previous_line = self.buffer.get_iter_at_line(self.cursor_line)
+        self.check_line(previous_line)
+
+        self.cursor_line = current_line
+
+        line = self.buffer.get_iter_at_line(current_line)
+        if line.get_char() == u'\n':
+            return
+
+        line_end = line.copy()
+        line_end.forward_to_line_end()
+
+        self.buffer.remove_tag_by_name('trailing_spaces', line, line_end)
+
 
 
     def find_trailing_spaces(self, line):
@@ -90,10 +113,12 @@ class TrailingSpaces(GObject.Object, Gedit.ViewActivatable):
 
     def check_buffer(self):
         line = self.buffer.get_start_iter()
-        self.check_line(line)
+        if line.get_line() != self.cursor_line:
+            self.check_line(line)
 
         while line.forward_line():
-            self.check_line(line)
+            if line.get_line() != self.cursor_line:
+                self.check_line(line)
 
 
     def check_line(self, line):
