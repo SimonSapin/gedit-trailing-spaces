@@ -62,12 +62,12 @@ class TrailingSpaces(GObject.Object, Gedit.ViewActivatable):
         if self.cursor_line == current_line:
             return
 
-        previous_line = self.buffer.get_iter_at_line(self.cursor_line)
+        _, previous_line = self.buffer.get_iter_at_line(self.cursor_line)
         self.check_line(previous_line)
 
         self.cursor_line = current_line
 
-        line = self.buffer.get_iter_at_line(current_line)
+        _, line = self.buffer.get_iter_at_line(current_line)
         if line.get_char() == u'\n':
             return
 
@@ -109,7 +109,8 @@ class TrailingSpaces(GObject.Object, Gedit.ViewActivatable):
         self.buffer.delete(trailing_start, line_end)
 
         # Revalidate the iter, for other plugins to act.
-        line.assign(self.buffer.get_iter_at_line(line_number))
+        _, something = self.buffer.get_iter_at_line(line_number)
+        line.assign(something)
 
 
     def check_buffer(self):
